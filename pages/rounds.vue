@@ -7,12 +7,9 @@
           src="https://www.publicationsports.com/cache/image/c5/cd/fa16d96e595133a0486e779b973a71d2_imagewall_1594890346_fr.jpg"
           alt=""
         />
-
         <div class="title">Pool TGV || Pee-Wee A</div>
-
         <div class="label">Ton nom :</div>
       </div>
-
       <div v-for="(r, index) in rounds()" class="round" :key="index + 'r'">
         <div class="header">Ronde {{ index + 1 }}</div>
         <div
@@ -48,14 +45,55 @@
               alt=""
             />
           </div>
-
           <div class="infos">
             <div class="position">
               {{ p.infos.primaryPosition.abbreviation }}
             </div>
             <div class="age">{{ p.infos.currentAge }} ans</div>
-
-            <!-- <div class="country">{{ p.infos.birthCountry }}</div> -->
+          </div>
+        </div>
+      </div>
+      <div class="scoring">
+        <div class="group">
+          <div class="header">Attaquants</div>
+          <div class="items">
+            <div class="scoring-item">
+              <div class="item">Buts / Goals</div>
+              <div class="points">2</div>
+            </div>
+            <div class="scoring-item">
+              <div class="item">Passes / Assists</div>
+              <div class="points">1.5</div>
+            </div>
+            <div class="scoring-item">
+              <div class="item">Lancers / Shots</div>
+              <div class="points">0.25</div>
+            </div>
+            <div class="scoring-item">
+              <div class="item">Plus Minus +/-</div>
+              <div class="points">.5</div>
+            </div>
+          </div>
+        </div>
+        <div class="group">
+          <div class="header">Gardiens</div>
+          <div class="items">
+            <div class="scoring-item">
+              <div class="item">Victoires / Wins</div>
+              <div class="points">3</div>
+            </div>
+            <div class="scoring-item">
+              <div class="item">Blanchissages / Shutouts</div>
+              <div class="points">2</div>
+            </div>
+            <div class="scoring-item">
+              <div class="item">Arrêts / Saves</div>
+              <div class="points">0.25</div>
+            </div>
+            <div class="scoring-item">
+              <div class="item">Buts contre /<br />Goals Against</div>
+              <div class="points">-1.5</div>
+            </div>
           </div>
         </div>
       </div>
@@ -86,7 +124,7 @@ export default {
             return item.round;
           })
         ),
-      ];
+      ].sort((b, a) => b - a);
     },
   },
 
@@ -125,6 +163,9 @@ export default {
 };
 </script>
 <style>
+* {
+  box-sizing: border-box;
+}
 body {
   font-family: "Lato", sans-serif;
   font-weight: 700;
@@ -216,10 +257,37 @@ body {
   margin-left: 20px;
   padding: 5px 20px;
   /* background-color: red; */
-  height: 40px;
+  height: 60px;
   align-items: center;
   display: flex;
   border: 2px #555 solid;
   border-radius: 30px;
+}
+.scoring {
+  width: 735px;
+  column-count: 2;
+  column-gap: 40px;
+  padding: 0px 10px;
+}
+.group {
+  /* display: flex; */
+  /* column-count: 2; */
+}
+.items {
+  column-count: 2;
+}
+.scoring-item {
+  font-size: 0.9em;
+  font-weight: 400;
+  display: flex;
+  min-width: 50%;
+  padding: 2px;
+  /* margin-bottom: 7px; */
+  justify-content: space-between;
+}
+.scoring .header {
+  /* display: block; */
+  width: 100%;
+  padding-bottom: 4px;
 }
 </style>
