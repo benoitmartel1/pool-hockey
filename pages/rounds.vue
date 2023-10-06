@@ -208,12 +208,14 @@ body {
   font-weight: 900;
 }
 .photo img {
+  filter: brightness(1.15) contrast(1.1);
   margin-right: 30px;
   border-radius: 50%;
   width: 80px;
 }
 .logo {
   display: flex;
+  filter: brightness(1.05) contrast(1.1);
   align-items: center;
 }
 .logo img {
