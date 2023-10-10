@@ -8,7 +8,8 @@
           alt=""
         />
         <div class="title">Pool TGV || Pee-Wee A</div>
-        <div class="label">Ton nom :</div>
+        <input v-model="prenom" placeholder="Prénom :" class="label" />
+        <input v-model="nom" placeholder="Nom :" class="label" />
       </div>
       <div v-for="(r, index) in rounds()" class="round" :key="index + 'r'">
         <div class="header">Ronde {{ index + 1 }}</div>
@@ -17,7 +18,9 @@
           class="player"
           :key="index + 'p'"
         >
-          <div class="checkBox"></div>
+          <div class="checkBox" @click="togglePlayer(p, playersByRound(r))">
+            {{ p.selected ? "X" : "" }}
+          </div>
           <div class="name">
             <div class="firstName">{{ p.infos.firstName }}</div>
             <div class="lastName">{{ p.infos.lastName }}</div>
@@ -52,6 +55,9 @@
             <div class="age">{{ p.infos.currentAge }} ans</div>
           </div>
         </div>
+      </div>
+      <div class="button send" @click="validateForm()">
+        Enregistrer mes choix
       </div>
       <div class="scoring">
         <div class="group">
@@ -107,10 +113,61 @@ export default {
     return {
       players: [],
       teams: [],
+      nom: "",
+      prenom: "",
     };
   },
   mounted() {},
   methods: {
+    validateForm() {
+      if (this.nom == "" || this.prenom == "") {
+        alert("Indiquez votre nom en haut de la page");
+        return;
+      }
+      if (
+        this.players.filter((p) => p.selected).length !== this.rounds().length
+      ) {
+        alert("Vérifiez vos sélections. Il manque des joueurs.");
+        return;
+      }
+      this.insertForm();
+    },
+    async insertForm() {
+      let user_id;
+      const { data, error } = await this.$db
+        .from("pool_users")
+        .insert([{ nom: this.nom, prenom: this.prenom, type: "player" }])
+        .select("user_id");
+
+      if (error) {
+        console.log(error);
+      } else {
+        user_id = data[0].user_id;
+      }
+
+      if (user_id) {
+        let insertArray = this.players
+          .filter((p) => p.selected)
+          .map((p) => {
+            return { user_id: user_id, player_id: p.player_id };
+          });
+        // console.log(insertArray);
+        const { data, error } = await this.$db
+          .from("pool_player_to_user")
+          .insert(insertArray);
+
+        if (data) {
+          alert("Choix enregistrés!");
+        }
+      }
+    },
+    togglePlayer(p, players) {
+      let isSelected = p.selected;
+      players.forEach((player) => {
+        player.selected = false;
+      });
+      p.selected = !isSelected;
+    },
     getTeam(id) {
       return this.teams.find((t) => t.id == id).abbreviation;
     },
@@ -137,8 +194,14 @@ export default {
       .from("pool_players")
       .select("*")
       .then(async (res) => {
+        res.data = res.data.map((u) => {
+          return Object.assign({}, u, {
+            selected: false,
+          });
+        });
+
         const stats = await Promise.all(
-          res.data.map((player) =>
+          res.data.map((player) => {
             this.$axios
               .get(
                 "people/" +
@@ -147,8 +210,8 @@ export default {
               )
               .then((resp) => {
                 player.stats = resp.data.stats[0].splits[0]?.stat;
-              })
-          )
+              });
+          })
         );
         const infos = await Promise.all(
           res.data.map((player) =>
@@ -157,6 +220,7 @@ export default {
             })
           )
         );
+
         return res.data;
       });
   },
@@ -226,12 +290,17 @@ body {
 }
 
 .checkBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
   border: 3px solid grey;
   width: 30px;
   height: 30px;
   border-radius: 50%;
   margin-right: 20px;
 }
+
 * {
   box-sizing: border-box;
 }
@@ -291,5 +360,17 @@ body {
   /* display: block; */
   width: 100%;
   padding-bottom: 4px;
+}
+.button {
+  cursor: pointer;
+  padding: 10px;
+  margin: 20px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 30%;
+  background-color: rgb(9, 141, 249);
+  border-radius: 30px;
+  color: white;
 }
 </style>
