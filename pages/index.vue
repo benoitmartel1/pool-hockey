@@ -1,20 +1,6 @@
 <script setup>
 const client = useSupabaseClient();
 
-console.log('lanny call');
-const { data } = useFetch(
-  `https://worker-summer-mode-dcb6.martel-b.workers.dev?id=8449423`,
-  {
-    mode: 'no-cors',
-    // server: false,
-  }
-).then((response) => {
-  console.log('Bravo Dino!');
-  console.log(response);
-});
-
-console.log(data);
-
 const requiredStats = {
   gamesPlayed: 0,
   goals: 2,
@@ -42,13 +28,8 @@ const { data: players } = await useAsyncData('players', async () => {
 const stats = await Promise.all(
   players.value.map(async (player) => {
     const { data } = await useFetch(
-      `https://worker-summer-mode-dcb6.martel-b.workers.dev?id=${player.nhl_id}`,
-      {
-        mode: 'no-cors',
-      }
+      `https://worker-summer-mode-dcb6.martel-b.workers.dev?id=${player.nhl_id}`
     );
-
-    // console.log(data);
 
     //Get current season stats for every team player played with
     const currentSeasonLogs = data?.value?.seasonTotals.filter(
@@ -196,7 +177,7 @@ ul,
   /* border-radius: 40px; */
   /* background-color: lightblue; */
   display: flex;
-  align-items: end;
+  align-items: flex-end;
 }
 
 li {

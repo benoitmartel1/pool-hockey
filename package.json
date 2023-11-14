@@ -16,6 +16,8 @@
     "vue": "^3.3.8",
     "vue-router": "^4.2.5"
   },
-  "dependencies": {},
-  "packageManager": "yarn@4.0.1"
+  "packageManager": "yarn@4.0.2",
+  "dependencies": {
+    "mirror": "^0.3.3"
+  }
 }

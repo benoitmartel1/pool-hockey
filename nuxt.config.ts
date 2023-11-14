@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   ssr: false,
 
   app: {
-    // baseURL: '/pool/',
+    baseURL: '/pool/',
     head: {
       link: [
         {

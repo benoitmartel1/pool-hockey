@@ -4783,6 +4783,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mirror@npm:^0.3.3":
+  version: 0.3.3
+  resolution: "mirror@npm:0.3.3"
+  dependencies:
+    uglify-js: "npm:1.0.2"
+  checksum: e4e450e67f143d30dcee2c63dcc3a5250e73ac139669a5dadb6f4056138e3d2ddcd67189c72ca46ddc2fdb9c0436aa6df87b84da91a63354719f79d51688e166
+  languageName: node
+  linkType: hard
+
 "mkdirp@npm:^1.0.3":
   version: 1.0.4
   resolution: "mkdirp@npm:1.0.4"
@@ -5215,10 +5224,10 @@ __metadata:
   dependencies:
     "@nuxt/devtools": "npm:latest"
     "@nuxtjs/supabase": "npm:^1.1.3"
+    mirror: "npm:^0.3.3"
     nuxt: "npm:^3.8.1"
     vue: "npm:^3.3.8"
     vue-router: "npm:^4.2.5"
-    yarn: "npm:^1.22.19"
   languageName: unknown
   linkType: soft
 
@@ -6837,6 +6846,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uglify-js@npm:1.0.2":
+  version: 1.0.2
+  resolution: "uglify-js@npm:1.0.2"
+  bin:
+    uglifyjs: ./bin/uglifyjs
+  checksum: 6d11955bfa1b94c79879ba842988fb3d474989352b4c88a604532850c427e4d74f05dc479c75cf70c3fe0b46239989620d1063a21035c79a382b5496bb40fa09
+  languageName: node
+  linkType: hard
+
 "ultrahtml@npm:^1.5.2":
   version: 1.5.2
   resolution: "ultrahtml@npm:1.5.2"
@@ -7579,16 +7597,6 @@ __metadata:
     y18n: "npm:^5.0.5"
     yargs-parser: "npm:^21.1.1"
   checksum: ccd7e723e61ad5965fffbb791366db689572b80cca80e0f96aad968dfff4156cd7cd1ad18607afe1046d8241e6fb2d6c08bf7fa7bfb5eaec818735d8feac8f05
-  languageName: node
-  linkType: hard
-
-"yarn@npm:^1.22.19":
-  version: 1.22.19
-  resolution: "yarn@npm:1.22.19"
-  bin:
-    yarn: bin/yarn.js
-    yarnpkg: bin/yarn.js
-  checksum: a6f9cdf67cca7e11141a18ffc1736a24dd569885b2ec0838982fcf21e5138840c66d9ebfc1846b0b35bc7b415cb985c65d79fb43aa1721b865e4f60c5569062a
   languageName: node
   linkType: hard
 
