@@ -50,18 +50,20 @@ const stats = await Promise.all(
         }
       });
     }
-    player.firstName = data._rawValue.firstName.default;
-    player.lastName = data._rawValue.lastName.default;
-    player.position = data._rawValue.position;
+    player.firstName = data.value.firstName.default;
+    player.lastName = data.value.lastName.default;
+    player.lastName = data.value.lastName.default;
+    player.position = data.value.position;
     player.stats = stats;
+    player.score = sumScore(player.stats);
 
     return player;
   })
 );
 
 users.value.forEach((user) => {
-  user.userStats = populateUserStats(user);
-  user.score = sumScore(user.userStats);
+  user.stats = populateUserStats(user);
+  user.score = sumScore(user.stats);
 });
 function sumScore(stats) {
   let score = 0;
@@ -86,6 +88,7 @@ function populateUserStats(user) {
   return stats;
 }
 users.value.sort((a, b) => b.score - a.score);
+players.value.sort((a, b) => b.score - a.score);
 </script>
 
 <template>
@@ -111,7 +114,7 @@ users.value.sort((a, b) => b.score - a.score);
         <div class="score">Score</div>
       </div>
     </div>
-    <ul>
+    <ul class="users">
       <User
         v-for="(u, index) in users"
         :key="u.user_id"
@@ -119,12 +122,14 @@ users.value.sort((a, b) => b.score - a.score);
         :index="index"
       />
     </ul>
-    <!-- <ul>
-      <li v-for="s in stats" :key="s.nhl_id">
-        <div>{{ s.firstName + ' ' + s.lastName }}</div>
-        <div>{{ s.stats }}</div>
-      </li>
-    </ul> -->
+    <ul class="players">
+      <User
+        v-for="(p, index) in players"
+        :key="p.player_id"
+        :index="index"
+        :user="p"
+      />
+    </ul>
   </div>
 </template>
 <style>
@@ -200,11 +205,16 @@ li div {
   max-width: 30px;
 }
 .nom {
-  justify-content: start !important;
+  /* justify-content: start !important; */
   /* background-color: blue; */
   flex: 1;
   width: 200px;
   font-weight: 800;
+  display: flex;
+  justify-content: space-between;
+}
+.player-position {
+  padding: 0;
 }
 .score {
   font-weight: 800;
@@ -218,6 +228,6 @@ li div {
   border-left: 1px solid #ccc;
 }
 .players {
-  display: none;
+  /* display: none; */
 }
 </style>
