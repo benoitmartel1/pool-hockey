@@ -1,45 +1,82 @@
 <script setup>
+const nuxtApp = useNuxtApp();
 const client = useSupabaseClient();
+const mainStore = useMainStore();
 
-const requiredStats = {
-  gamesPlayed: 0,
-  goals: 2,
-  assists: 1.5,
-  plusMinus: 0.5,
-  shots: 0.25,
-  wins: 2,
-  shotsAgainst: 0.25,
-  shutouts: 3,
-  goalsAgainst: -1.5,
-};
+//Fetch pool users
+const { data: fetchedUsers } = await useAsyncData(
+  'fetchedUsers',
+  async () => {
+    const { data } = await client
+      .from('pool_users')
+      .select('*,  players:pool_player_to_user(player_id)');
+    return data;
+  },
+  {
+    getCachedData(key) {
+      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
+    },
+  }
+);
+mainStore.users = fetchedUsers;
+//Fetch pool NHL players IDs
+const { data: fetchedPlayers } = await useAsyncData(
+  'fetchedPlayers',
+  async () => {
+    const { data } = await client
+      .from('pool_players')
+      .select('player_id, nhl_id, round');
+    return data;
+  },
+  {
+    getCachedData(key) {
+      return nuxtApp.payload.data[key] || nuxtApp.static.data[key];
+    },
+  }
+);
+mainStore.players = fetchedPlayers;
 
-const { data: users } = await useAsyncData('users', async () => {
-  const { data } = await client
-    .from('pool_users')
-    .select('*,  players:pool_player_to_user(player_id)');
-  return data;
-});
-
-const { data: players } = await useAsyncData('players', async () => {
-  const { data } = await client.from('pool_players').select('*');
-  return data;
-});
-
+//For every NHL player, retrieve current season stats
 const stats = await Promise.all(
-  players.value.map(async (player) => {
+  mainStore.players.map(async (player) => {
     const { data } = await useFetch(
-      `https://worker-summer-mode-dcb6.martel-b.workers.dev?id=${player.nhl_id}`
+      //https://dash.cloudflare.com/33c34580d322d7187a306d420538bbe4 to EDIT
+      `https://worker-summer-mode-dcb6.martel-b.workers.dev?id=${player.nhl_id}`,
+
+      {
+        pick: [
+          'seasonTotals',
+          'fullName',
+          'position',
+          'firstName',
+          'lastName',
+          'teamLogo',
+          'headshot',
+        ],
+        getCachedData(key) {
+          const data = nuxtApp.payload.data[key] || nuxtApp.static.data[key];
+          return data;
+        },
+      }
     );
+    player.firstName = data.value.firstName.default;
+    player.lastName = data.value.lastName.default;
+    player.fullName = data.value.fullName;
+    player.position = data.value.position;
+    player.teamLogo = data.value.teamLogo;
+    player.headShot = data.value.headshot;
 
     //Get current season stats for every team player played with
     const currentSeasonLogs = data?.value?.seasonTotals.filter(
       (s) => s.season == '20232024'
     );
 
+    //Create the key for every stat needed in player object
     let stats = { ...requiredStats };
     for (let [key, value] of Object.entries(stats)) {
       stats[key] = 0;
     }
+
     //Sum every stat for every team he played with
     for (let [key, value] of Object.entries(stats)) {
       currentSeasonLogs.forEach((l) => {
@@ -50,28 +87,21 @@ const stats = await Promise.all(
         }
       });
     }
-    player.firstName = data.value.firstName.default;
-    player.lastName = data.value.lastName.default;
-    player.lastName = data.value.lastName.default;
-    player.position = data.value.position;
+
     player.stats = stats;
-    player.score = sumScore(player.stats);
+
+    //Define the score according to defined requiredStats chart
+    player.score = useSumScore(player.stats);
 
     return player;
   })
 );
 
-users.value.forEach((user) => {
+mainStore.users.forEach((user) => {
   user.stats = populateUserStats(user);
-  user.score = sumScore(user.stats);
+  user.score = useSumScore(user.stats);
 });
-function sumScore(stats) {
-  let score = 0;
-  for (let [key, value] of Object.entries(stats)) {
-    score += value * requiredStats[key];
-  }
-  return score;
-}
+
 function populateUserStats(user) {
   let stats = { ...requiredStats };
   for (let [key, value] of Object.entries(stats)) {
@@ -79,55 +109,38 @@ function populateUserStats(user) {
   }
 
   user.players.forEach((userPlayer) => {
-    let player = players.value.find((p) => p.player_id == userPlayer.player_id);
-    userPlayer.name = player.lastName;
+    let player = mainStore.players.find(
+      (p) => p.player_id == userPlayer.player_id
+    );
+    // userPlayer.name = player.lastName;
     for (let [key, value] of Object.entries(stats)) {
       stats[key] += parseInt(player.stats[key]) || 0;
     }
   });
   return stats;
 }
-users.value.sort((a, b) => b.score - a.score);
-players.value.sort((a, b) => b.score - a.score);
+mainStore.users.sort((a, b) => b.score - a.score);
+mainStore.players.sort((a, b) => b.score - a.score);
 </script>
 
 <template>
   <div class="page">
     <div id="tgv">
-      <div class="header">
-        <div class="position"></div>
-        <div class="nom">
-          <img
-            class="logo"
-            src="https://www.publicationsports.com/cache/image/c5/cd/fa16d96e595133a0486e779b973a71d2_imagewall_1594890346_fr.jpg"
-            alt=""
-          />
-        </div>
-        <div class="goals">G</div>
-        <div class="assists">A</div>
-        <div class="plusMinus">+ / -</div>
-        <div class="shots">S</div>
-        <div class="wins">W</div>
-        <div class="shutouts">SO</div>
-        <div class="saves">SV</div>
-        <div class="goalsAgainst">GA</div>
-        <div class="score">Score</div>
-      </div>
+      <Header />
     </div>
     <ul class="users">
       <User
-        v-for="(u, index) in users"
+        v-for="(u, index) in mainStore.users"
         :key="u.user_id"
         :user="u"
         :index="index"
-      />
-    </ul>
-    <ul class="players">
-      <User
-        v-for="(p, index) in players"
-        :key="p.player_id"
-        :index="index"
-        :user="p"
+        @click="
+          {
+            {
+              $router.push({ path: '/users/' + u.user_id });
+            }
+          }
+        "
       />
     </ul>
   </div>
@@ -158,7 +171,6 @@ players.value.sort((a, b) => b.score - a.score);
     height: 10in;
     margin: 0;
     padding: 0;
-    justify-content: space-between;
   }
 }
 body {
@@ -168,47 +180,44 @@ body {
   font-size: 16px;
   margin: 0;
 }
-ul,
-.header {
+ul {
   margin: 0;
   padding: 10px;
   list-style-type: none;
   padding-top: 0;
-  /* max-width: 640px; */
 }
 .header {
   padding: 0 10px;
   border-bottom: 1px solid #333;
-  /* border-radius: 40px; */
-  /* background-color: lightblue; */
-  display: flex;
-  align-items: flex-end;
 }
 
 li {
+  cursor: pointer;
   border-bottom: 1px solid #ccc;
   display: flex;
-  /* justify-content: space-between; */
+  align-items: center;
+  height: 48px;
+  justify-content: space-between;
 }
-.header div,
-li div {
-  padding: 6px 12px;
+li > * {
   display: flex;
-  justify-content: center;
-  min-width: 60px;
 }
-.header div:not(.nom) {
-  padding-bottom: 10px;
+.infos {
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 20px;
+}
+.infos > * {
+  padding: 0 6px;
 }
 .position {
   min-width: 30px !important;
   max-width: 30px;
 }
 .nom {
-  /* justify-content: start !important; */
-  /* background-color: blue; */
   flex: 1;
-  width: 200px;
+
   font-weight: 800;
   display: flex;
   justify-content: space-between;
@@ -218,7 +227,6 @@ li div {
 }
 .score {
   font-weight: 800;
-  /* flex-grow: 1; */
   min-width: 80px !important;
   justify-content: center !important;
 }
@@ -226,8 +234,5 @@ li div {
 .goals,
 .score {
   border-left: 1px solid #ccc;
-}
-.players {
-  /* display: none; */
 }
 </style>

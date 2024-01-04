@@ -1,15 +1,5 @@
 <template>
-  <li>
-    <div class="position">{{ index + 1 }}</div>
-
-    <div class="nom" v-if="user.prenom">
-      {{ (user.type == 'coach' ? 'Coach ' : '') + user.prenom }}
-    </div>
-    <div v-else class="nom">
-      {{ user.firstName + ' ' + user.lastName }}
-      <div class="player-position">{{ formatPosition(user.position) }}</div>
-    </div>
-
+  <div class="stats">
     <div class="goals">{{ user.stats.goals || 0 }}</div>
     <div class="assists">{{ user.stats.assists || 0 }}</div>
     <div class="plusMinus">{{ user.stats.plusMinus || 0 }}</div>
@@ -19,20 +9,22 @@
     <div class="saves">{{ user.stats.shotsAgainst || 0 }}</div>
     <div class="goalsAgainst">{{ user.stats.goalsAgainst || 0 }}</div>
     <div class="score">{{ Math.round(user.score) || 0 }}</div>
-  </li>
+  </div>
 </template>
 
 <script>
 export default {
-  props: ['user', 'index'],
-  methods: {
-    formatPosition(pos) {
-      if (pos == 'L' || pos == 'R') {
-        pos = pos + 'W';
-      }
-      return pos;
-    },
-  },
+  props: ['user'],
 };
 </script>
-<style></style>
+<style>
+.stats {
+  height: 100%;
+}
+.stats div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 60px;
+}
+</style>
